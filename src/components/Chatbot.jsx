@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx'
@@ -33,7 +33,7 @@ export default function Chatbot() {
   const messagesEndRef = useRef(null)
 
   const currentConversation = conversations.find(c => c.id === currentConversationId)
-  const messages = currentConversation?.messages || []
+  const messages = useMemo(() => currentConversation?.messages || [], [currentConversation])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -69,11 +69,27 @@ export default function Chatbot() {
     setInputMessage('')
     setIsTyping(true)
 
-    // Simular resposta do bot (aqui seria integrada a API real)
-    setTimeout(() => {
+    // Enviar para o proxy backend que chamará a API de IA (não exponha a chave no cliente)
+    try {
+      // Enviamos o histórico para contexto (sender: 'user' | 'bot')
+      const history = messages.map(m => ({ sender: m.sender, text: m.text, timestamp: m.timestamp }))
+
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: inputMessage, history })
+      })
+
+      if (!resp.ok) {
+        throw new Error('Erro no servidor de IA')
+      }
+
+      const data = await resp.json()
+      const botText = data.reply || 'Desculpe, não consegui gerar uma resposta.'
+
       const botResponse = {
-        id: messages.length + 2,
-        text: generateBotResponse(inputMessage),
+        id: Date.now(),
+        text: botText,
         sender: 'bot',
         timestamp: new Date()
       }
@@ -87,20 +103,30 @@ export default function Chatbot() {
         }
         return conv
       }))
+    } catch (err) {
+      console.error('Chat error', err)
+      const botResponse = {
+        id: Date.now(),
+        text: 'Desculpe, ocorreu um erro ao conectar com a nossa IA. Tente novamente mais tarde.',
+        sender: 'bot',
+        timestamp: new Date()
+      }
+
+      setConversations(prev => prev.map(conv => {
+        if (conv.id === currentConversationId) {
+          return {
+            ...conv,
+            messages: [...conv.messages, botResponse]
+          }
+        }
+        return conv
+      }))
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
-  const generateBotResponse = (userInput) => {
-    const responses = [
-      "Entendo como você se sente. É importante reconhecer essas emoções. Gostaria de conversar mais sobre isso?",
-      "Obrigado por compartilhar isso comigo. Lembre-se de que buscar ajuda é um sinal de força, não de fraqueza.",
-      "Suas emoções são válidas. Como profissional da segurança/saúde, você enfrenta desafios únicos. Estou aqui para apoiá-lo.",
-      "É normal sentir-se assim às vezes. Que tal tentarmos algumas técnicas de respiração ou relaxamento?",
-      "Percebo que você está passando por um momento difícil. Gostaria que eu te conectasse com um de nossos psicólogos especializados?"
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
-  }
+  // A resposta agora vem do backend (/api/chat). A função de exemplo foi removida.
 
   const handleVoiceInput = () => {
     if ('webkitSpeechRecognition' in window) {

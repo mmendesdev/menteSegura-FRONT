@@ -22,6 +22,7 @@ Interface moderna e responsiva da plataforma Mente Segura, desenvolvida em React
 ## ⚡ **Instalação Rápida**
 
 ### 1. **Instalar dependências:**
+
 ```bash
 pnpm install
 # ou
@@ -29,19 +30,51 @@ npm install
 ```
 
 ### 2. **Configurar variáveis de ambiente:**
+
 ```bash
 cp .env.example .env
 # Edite com a URL da sua API
 ```
 
 ### 3. **Executar em desenvolvimento:**
+
 ```bash
 pnpm run dev
 # ou
 npm run dev
 ```
 
+### AI Chat (proxy local)
+
+Para permitir que usuários conversem com a IA sem expor a chave no cliente, há um proxy Express em `server/` que expõe `/api/chat`.
+
+Passos rápidos:
+
+1. Instale dependências do servidor:
+
+```fish
+cd server
+npm install
+```
+
+2. Copie `.env.example` para `.env` e configure `OPENAI_API_KEY` com sua chave OpenAI.
+
+3. Inicie o servidor:
+
+```fish
+npm start
+```
+
+4. Execute o frontend (na raiz do frontend):
+
+```fish
+pnpm dev
+```
+
+O Vite está configurado para encaminhar chamadas a `/api` para `http://localhost:5174` durante o desenvolvimento.
+
 ### 4. **Build para produção:**
+
 ```bash
 pnpm run build
 # ou
@@ -68,6 +101,7 @@ VITE_API_URL=http://localhost:5000
 ## 🎯 **Funcionalidades**
 
 ### ✅ **Implementadas:**
+
 - Interface responsiva e moderna
 - Chatbot com reconhecimento de voz
 - Sistema de agendamento intuitivo
@@ -76,6 +110,7 @@ VITE_API_URL=http://localhost:5000
 - Design acolhedor (azul, verde, branco)
 
 ### 🔄 **Para implementar:**
+
 - Sistema de rotas completo
 - Autenticação integrada
 - Estado global (Context/Redux)
@@ -112,11 +147,13 @@ function App() {
 ## 🎨 **Personalização**
 
 ### **Cores do tema:**
+
 - **Primária:** Azul (#3b82f6)
 - **Secundária:** Verde (#10b981)
 - **Acolhimento:** Tons suaves e gradientes
 
 ### **Componentes UI:**
+
 Todos os componentes shadcn/ui estão disponíveis em `/src/components/ui/`
 
 ## 📱 **Responsividade**
@@ -142,18 +179,21 @@ docker run -p 3000:3000 mente-segura-frontend
 ## 🚀 **Deploy**
 
 ### **Vercel (Recomendado):**
+
 ```bash
 npm i -g vercel
 vercel
 ```
 
 ### **Netlify:**
+
 ```bash
 npm run build
 # Upload da pasta dist/
 ```
 
 ### **AWS S3 + CloudFront:**
+
 ```bash
 npm run build
 aws s3 sync dist/ s3://seu-bucket
